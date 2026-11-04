@@ -16,6 +16,12 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '20'))
   }
 
+  // Build when GitHub reports a push (webhook). Also declared in the job
+  // config (JCasC) so it is active before the first build of each session.
+  triggers {
+    githubPush()
+  }
+
   parameters {
     booleanParam(name: 'RUN_TESTS', defaultValue: true,  description: 'Run unit tests during the Maven build')
     booleanParam(name: 'FORCE_ALL', defaultValue: false, description: 'Rebuild every image, even if its tag already exists in ECR')
