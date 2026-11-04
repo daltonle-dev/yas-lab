@@ -54,9 +54,12 @@ pipeline {
       steps {
         sh 'FORCE_ALL=${FORCE_ALL} python3 ci/plan.py | tee build/plan.txt'
         script {
-          def lines = readFile('build/plan.txt').trim().split('\n').collect { it.split(' ') }
-          env.JAVA_BUILD = lines.findAll { it[2] == 'java' && it[4] == 'build' }.collect { it[1] }.join(',')
-          env.TO_BUILD   = lines.findAll { it[4] == 'build' }.collect { it[0] }.join(' ')
+          // Parse the plan in the shell, not in Groovy: pipeline Groovy runs on the
+          // controller through a CPS transform where list/array methods misbehave.
+          // plan.txt columns: 1 image, 2 dir, 3 kind, 4 tag, 5 build|skip, 6 inputs
+          env.JAVA_BUILD = sh(returnStdout: true, script: '''awk '$3=="java" && $5=="build" {print $2}' build/plan.txt | paste -sd, -''').trim()
+          env.TO_BUILD   = sh(returnStdout: true, script: '''awk '$5=="build" {print $1}' build/plan.txt | paste -sd' ' -''').trim()
+          echo "Maven modules: ${env.JAVA_BUILD ?: '(none)'}"
           echo "Images to build: ${env.TO_BUILD ?: '(none)'}"
         }
       }
