@@ -29,3 +29,6 @@ hs_err_pid*
 .settings*
 .vscode
 *.iml
+
+# macOS Finder metadata
+.DS_Store
