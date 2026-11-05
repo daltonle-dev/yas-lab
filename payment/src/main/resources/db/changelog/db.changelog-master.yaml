@@ -1,5 +1,14 @@
+# Explicit order instead of "all ddl, then all data" (INC-001):
+# ddl/0004 renames payment_provider.is_enabled -> enabled, while data/0001-0003
+# still insert/update with is_enabled. Running every ddl file first made a fresh
+# database fail at data/0001. Changeset files are unchanged, so their identity
+# (path::id::author) is the same and existing databases see nothing new.
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/ddl/
-  - includeAll:
-      path: db/changelog/data/
+  - include: { file: db/changelog/ddl/changelog-0001.sql }
+  - include: { file: db/changelog/ddl/changelog-0002.sql }
+  - include: { file: db/changelog/ddl/changelog-0003.sql }
+  - include: { file: db/changelog/data/changelog-0001-provider.sql }
+  - include: { file: db/changelog/data/changelog-0002-provider.sql }
+  - include: { file: db/changelog/data/changelog-0003-provider.sql }
+  - include: { file: db/changelog/ddl/changelog-0004.sql }
+  - include: { file: db/changelog/data/changelog-0004-provider.sql }
