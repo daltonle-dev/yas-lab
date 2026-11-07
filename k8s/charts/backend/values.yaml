@@ -96,6 +96,18 @@ livenessProbe:
     path: /actuator/health/liveness
     port: metric
 
+# P1 (INC-002): until the startup probe succeeds, Kubernetes does not run the
+# liveness probe. Without it, liveness (12 x 10 s = 2 min) killed slow starts,
+# including a pod in the middle of Liquibase migrations, which left the
+# changelog lock taken and every later pod waiting for it forever.
+# 30 x 10 s = up to 5 min to start; after that liveness takes over as before.
+startupProbe:
+  periodSeconds: 10
+  failureThreshold: 30
+  httpGet:
+    path: /actuator/health/liveness
+    port: metric
+
 readinessProbe:
   periodSeconds: 10
   failureThreshold: 12
