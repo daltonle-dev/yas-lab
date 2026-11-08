@@ -119,7 +119,9 @@ pipeline {
             while read -r image dir kind tag action inputs; do
               [ "$action" = "build" ] || continue
               if ! grep -q "^  $image:" "$FILE"; then echo "WARNING: $image is not in $FILE, not deployed"; continue; fi
-              sed -i "s|^  $image: .*|  $image: \"$tag\"|" "$FILE"
+              # B2a: \\" in Groovy -> \" in shell -> " in the file. Quoted, so a tag like
+              # 1234567890 or 12345e6789 stays a string in YAML (not an int / a float).
+              sed -i "s|^  $image: .*|  $image: \\"$tag\\"|" "$FILE"
               CHANGES="$CHANGES $image=$tag"
             done < ../plan.txt
             if git diff --quiet; then echo "images.yaml already has these tags"; exit 0; fi
